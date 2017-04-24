@@ -38,9 +38,10 @@ def preCallSystemOfRecordAfterConversation(message):
 	return message
 
 def callSystemOfRecordAfterConversation(message):
-    global accountNumber1,motherName1
+    global accountNumber1,motherName1,watsonDob
     accountNumber1=None
     motherName1=None
+    watsonDob=None
     if 'intents' in message:
         print message
         print 'you called SOA Service'
@@ -51,6 +52,12 @@ def callSystemOfRecordAfterConversation(message):
                 accountNumber1 = message['context']['accNumber']
                 accountNumber1 = accountNumber1.replace(" ","")
                 del message['context']['accNumber'];
+                
+            if 'dob' in message['context']:
+                print message['context']['dob']
+                watsonDob = message['context']['dob']
+                watsonDob = watsonDob.replace(" ","")
+                del message['context']['dob']
                          
             if  accountNumber1 is not None:
                 print("your account no is-->",accountNumber1);
@@ -60,32 +67,33 @@ def callSystemOfRecordAfterConversation(message):
                 r = requests.get(bankUrl)
                 results = r.json();
                 print results['custname']
-                print results['dob']
                 soap_custName = results['custname']
                 if soap_custName == accountNumber1:
                     print "account number match"
-                    message['output']['text'][0] = 'your balance is' + ' ' + soap_custName + ' ' + 'dollars'
+                    message['output']['text'][0] = 'Your balance is' + ' ' + soap_custName + ' ' + 'Would you like help with something else?'
                     #message['context']['custname'] = soap_custName
                     message['context']['verified'] = 'yes'
                 else:
                     print "Account number does not match"
-                    message['output']['text'][0] = 'you input wrong account number.'
+                    message['output']['text'][0] = 'I am sorry, I could not find your account number. Can you please try again?'
                     message['context']['verified'] = 'no'
                     
-        #for x in message['intents']:
-            #if x['intent'] == 'balance':
-                #print 'Intent balance is found'
-                #if 'accNumber' in message:
-                    #print 'variable accountbal  is found'
-                    #accountNumber1 = message['accNumber']
-                    #if accountNumber1.strip():
-                        #print accountNumber1
-                        #r = requests.get('https://alliancebank.mybluemix.net/rbs/account/12345')
-                    #results = r.json();
-                    #print results['accbal']
-                    #message['output']['text'][0] = 'your balance is' + ' ' + results['accbal']
-                    
-                #break
+            if  watsonDob is not None:
+                print("your entered dob is-->",watsonDob);
+                bankUrl = 'http://161.202.176.3:5000/api/alliance/info'
+                #bankUrl =  bankUrl + '/'+ motherName1
+                print 'Bank Url is '+' ' + bankUrl
+                r = requests.get(bankUrl)
+                results = r.json();
+                print results['dob']
+                soap_dob = results['dob']
+                if soap_dob == watsonDob:
+                    print "DOB match"
+                    message['output']['text'][0] = 'thank you, your date of birth' + ' '  + soap_dob + ' ' +  'is correct. Would you like your statement for the last month or last two months?'
+                    #message['context']['custname'] = soap_custName
+                else:
+                    print "DOB does not match"
+                    message['output']['text'][0] = 'I am sorry your date of birth does not match our records. can you please try again?'
             
 	return message
 
